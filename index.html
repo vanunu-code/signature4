@@ -140,7 +140,6 @@
     <div id="names-list">
         <h2 style="font-family:Arial, Helvetica, Verdana, Geneva, Tahoma, sans-serif; color: #000000;">שמות</h2>
         <table>
-          <!--  <button id="export-button">ייצוא לגיליון אקסל</button>-->
             <thead>
                 <tr>
                     <th>שם ומשפחה</th>
@@ -149,303 +148,230 @@
                 </tr>
             </thead>
             <tbody id="names-table-body">
-                <!-- רשימת שמות-->
+                <!-- List Name-->
             </tbody>            
-        </table>
-    </div>
+        </table>  <button id="export-button">ייצוא לגיליון אקסל</button>
+    </div>         
+
 
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script>
-        // Animation for the save button
-        const saveButton = document.getElementById('save-button');
-        // הוסף אירוע ללחיצה על כפתור השמירה
+        <script>
+      // Animation
+      const saveButton = document.getElementById('save-button');
+
 saveButton.addEventListener('click', function () {
-    const dataUrl = signaturePad.toDataURL();
     const fullName = document.getElementById('full-name').value;
+    const mySignature = document.getElementById('my_signature').value;
+    const joinDatabaseCheckbox = document.getElementById('join-database');
     
-    // שמירת התמונה לתיקיית הקבצים במכשיר (התיקייה הבאה מסמלת את תיקיית המסמכים ב-iPad)
-    saveImageToDevice(dataUrl, fullName + '_signature.png');
-});
-
-// פונקציה לשמירת התמונה בתיקיית הקבצים במכשיר
-function saveImageToDevice(dataUrl, filename) {
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = filename;
-    link.style.display = 'none';
-
-    // יצירת אירוע "לחיצה" וזימון אותו
-    const clickEvent = new MouseEvent('click', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-    });
-
-    link.dispatchEvent(clickEvent);
-}
-
-        saveButton.addEventListener('click', () => {
-            saveButton.style.animation = 'likeAnimation 1s';
-            setTimeout(() => {
-                saveButton.style.animation = '';
-            }, 1000);
-        });
-    
-        // Function to animate the button and toggle display
-        function animateButton() {
-            var button = document.getElementById('save-button');
-            var animationContainer = document.getElementById('like-animation');
-    
-            if (!animationContainer.style.display || animationContainer.style.display === 'none') {
-                button.innerHTML = 'תגובה!';
-                animationContainer.style.display = 'block';
-            } else {
-                button.innerHTML = 'שמירה';
-                animationContainer.style.display = 'none';
-            }
-        }
-    
-        // Signature pad and form submission
-        var canvas = document.getElementById('signature-pad');
-        var namesTableBody = document.getElementById('names-table-body');
-        var clearButton = document.getElementById('clear-button');
-    
-        function saveDataUrlToImage(dataUrl, filename) {
-            var link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = filename;
-            link.click();
-        }
-    
-        function resizeCanvas() {
-            var ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-        }
-    
-        window.onresize = resizeCanvas;
-        resizeCanvas();
-    
-        var signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgba(255, 255, 255, 0)'
-        });
-    
-        document.getElementById('save-button').addEventListener('click', function (event) {
-            event.preventDefault();
-    
-            if (signaturePad.isEmpty()) {
-                return alert("אנא הזן חתימה קודם.");
-            }
-    
-            var fullName = document.getElementById('full-name').value;
-            var mySignature = document.getElementById('my_signature').value;
-            var joinDatabaseCheckbox = document.getElementById('join-database');
-            var joinDatabaseValue = joinDatabaseCheckbox.checked ? 'כן' : 'לא';
-    
-            if (fullName.trim() === "" || mySignature.trim() === "") {
-                return alert("אנא הזן שם, משפחה וחותמת אישית.");
-            }
-    
-            var newRow = namesTableBody.insertRow(0);
-            var nameCell = newRow.insertCell();
-            var signatureCell = newRow.insertCell();
-            var joinDatabaseCell = newRow.insertCell();
-    
-            nameCell.textContent = fullName;
-            signatureCell.textContent = mySignature;
-            joinDatabaseCell.textContent = joinDatabaseValue;
-
-             joinDatabaseCheckbox.checked = false;
-        
-            document.getElementById('full-name').value = "";
-            document.getElementById('my_signature').value = "";
-            signaturePad.clear();
-        });
-    
-        clearButton.addEventListener('click', function () {
-            signaturePad.clear();
-        });
-    
-// Export data to Excel
-// Export data to Excel function
-function exportDataToExcel() {
-    var table = document.getElementById('names-table-body');
-    var rows = Array.from(table.getElementsByTagName('tr'));
-    var data = [['שם ומשפחה', 'חותמת אישית', 'נופשון הקלה']];
-    
-    if (table.children.length === 0) {
+    if (fullName.trim() === "" || mySignature.trim() === "") {
+        alert("אנא הזן שם וחותמת אישית.");
         return;
     }
-    
-    rows.forEach(function (row) {
-        var nameCell = row.querySelector('td:nth-child(1)');
-        var signatureCell = row.querySelector('td:nth-child(2)');
-        var joinDatabaseCell = row.querySelector('td:nth-child(3)');
-        var joinDatabaseValue = joinDatabaseCell.textContent;
-        data.push([nameCell.textContent, signatureCell.textContent, joinDatabaseValue]);
-    });
 
-    var ws = XLSX.utils.aoa_to_sheet(data);
-    var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'רשימת שמות');
+    // Assuming signaturePad is defined and works properly
+    if (signaturePad.isEmpty()) {
+        alert("אנא הזן חתימה קודם.");
+        return;
+    }
 
-    var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+    // Save the data without downloading the image
+    const joinDatabaseValue = joinDatabaseCheckbox.checked ? 'כן' : 'לא';
 
-    var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+    const newRow = namesTableBody.insertRow(0);
+    const nameCell = newRow.insertCell();
+    const signatureCell = newRow.insertCell();
+    const joinDatabaseCell = newRow.insertCell();
 
-    // Save the Blob using the FileSaver.js library
-    saveAs(blob, 'שמות.xlsx');
-    
-    // Refresh the page after a brief delay
-    setTimeout(function () {
-        window.location.reload();
-    }, 3000);
-    
-    // Clear the table content after export
-    table.innerHTML = '';
-}
+    nameCell.textContent = fullName;
+    signatureCell.textContent = mySignature;
+    joinDatabaseCell.textContent = joinDatabaseValue;
 
-// Event listener for page unload or refresh
-window.addEventListener('beforeunload', function () {
-    // Trigger the export function
-    exportDataToExcel();
-    
-});
+    joinDatabaseCheckbox.checked = false;
 
-    
-        // Load and save data to local storage
-        window.onbeforeunload = function () {
-            var fullName = document.getElementById('full-name').value;
-            var mySignature = document.getElementById('my_signature').value;
-            var joinDatabase = document.getElementById('join-database').checked;
-    
-            localStorage.setItem('full_name', fullName);
-            localStorage.setItem('my_signature', mySignature);
-            localStorage.setItem('join_database', joinDatabase);
-    
-            var tableData = [];
-            var tableRows = document.querySelectorAll('#names-table-body tr');
-            tableRows.forEach(function (row) {
-                var nameCell = row.querySelector('td:first-child');
-                var signatureCell = row.querySelector('td:last-child');
-                tableData.push([nameCell.textContent, signatureCell.textContent]);
+    document.getElementById('full-name').value = "";
+    document.getElementById('my_signature').value = "";
+    signaturePad.clear();
+    clearButton.addEventListener('click', function () {
+                signaturePad.clear();
             });
-    
-            localStorage.setItem('table_data', JSON.stringify(tableData));
-        };
-    
-        window.addEventListener('DOMContentLoaded', function () {
-            var fullName = localStorage.getItem('full_name');
-            var mySignature = localStorage.getItem('my_signature');
-            var joinDatabase = localStorage.getItem('join_database');
-    
-            if (fullName) {
-                document.getElementById('full-name').value = fullName;
-            }
-    
-            if (mySignature) {
-                document.getElementById('my_signature').value = mySignature;
-            }
-    
-            if (joinDatabase === 'true') {
-                document.getElementById('join-database').checked = true;
-            }
-    
-            var tableData = JSON.parse(localStorage.getItem('table_data'));
-            if (tableData) {
-                var tableBody = document.getElementById('names-table-body');
-                tableData.forEach(function (rowData) {
-                    var newRow = tableBody.insertRow();
-                    var nameCell = newRow.insertCell(0);
-                    var signatureCell = newRow.insertCell(1);
-                    var joinDatabaseCell = newRow.insertCell(2);
-                    nameCell.textContent = rowData[0];
-                    signatureCell.textContent = rowData[1];
-                    joinDatabaseCell.textContent = rowData[2];
-                });
-            }
+        
+});
+
+    function saveImageToDevice(dataUrl, filename) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = filename;
+        link.style.display = 'none';
+
+        const clickEvent = new MouseEvent('click', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true
         });
-    
-        function s2ab(s) {
-            var buf = new ArrayBuffer(s.length);
-            var view = new Uint8Array(buf);
-            for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
+
+        link.dispatchEvent(clickEvent);
+    }
+
+            saveButton.addEventListener('click', () => {
+                saveButton.style.animation = 'likeAnimation 1s';
+                setTimeout(() => {
+                    saveButton.style.animation = '';
+                }, 1000);
+            });
+        
+            // Function to animate the button and toggle display
+            function animateButton() {
+                var button = document.getElementById('save-button');
+                var animationContainer = document.getElementById('like-animation');
+        
+                if (!animationContainer.style.display || animationContainer.style.display === 'none') {
+                    button.innerHTML = 'תגובה!';
+                    animationContainer.style.display = 'block';
+                } else {
+                    button.innerHTML = 'שמירה';
+                    animationContainer.style.display = 'none';
+                }
+            }
+        
+            // Signature pad and form submission
+            var canvas = document.getElementById('signature-pad');
+            var namesTableBody = document.getElementById('names-table-body');
+            var clearButton = document.getElementById('clear-button');
+        
+            function saveDataUrlToImage(dataUrl, filename) {
+                var link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = filename;
+                link.click();
+            }
+        
+            function resizeCanvas() {
+                var ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+            }
+        
+            window.onresize = resizeCanvas;
+            resizeCanvas();
+        
+            var signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(255, 255, 255, 0)'
+            });
+        
+
+    // Export Excel
+    function exportDataToExcel() {
+        var table = document.getElementById('names-table-body');
+        var rows = Array.from(table.getElementsByTagName('tr'));
+        var data = [['שם ומשפחה', 'חותמת אישית', 'נופשון הקלה']];
+        
+        if (table.children.length === 0) {
+            return;
         }
-// הוספת אירוע לטעינת הדף
-window.addEventListener('DOMContentLoaded', function () {
-    // כאן תוכל להשליב את הקוד ללחיצה על כפתור "ייצוא לאקסל"
-    var exportButton = document.getElementById('export-button');
-    if (exportButton) {
-        exportButton.click();
-    }
-});
-
-// הוספת אירוע beforeunload לחלון הדפדפן
-window.addEventListener('beforeunload', function (event) {
-    // הוספת פקודה לרענון הדף
-    window.location.reload();
-});
-/*// שמירת נתונים בלוקל סטורז
-function saveDataToLocalStore() {
-    var tableData = [];
-    var tableRows = document.querySelectorAll('#names-table-body tr');
-
-    tableRows.forEach(function (row) {
-        var nameCell = row.querySelector('td:first-child');
-        var signatureCell = row.querySelector('td:nth-child(2)');
-        var joinDatabaseCell = row.querySelector('td:nth-child(3)');
-
-        tableData.push({
-            fullName: nameCell.textContent,
-            mySignature: signatureCell.textContent,
-            joinDatabaseValue: joinDatabaseCell.textContent
+        
+        rows.forEach(function (row) {
+            var nameCell = row.querySelector('td:nth-child(1)');
+            var signatureCell = row.querySelector('td:nth-child(2)');
+            var joinDatabaseCell = row.querySelector('td:nth-child(3)');
+            var joinDatabaseValue = joinDatabaseCell.textContent;
+            data.push([nameCell.textContent, signatureCell.textContent, joinDatabaseValue]);
         });
-    });
 
-    localStorage.setItem('table_data', JSON.stringify(tableData));
-}
+        var ws = XLSX.utils.aoa_to_sheet(data);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'רשימת שמות');
 
-// טעינת נתונים מלוקל סטורז
-function loadTableDataFromLocalStore() {
-    var dataLoaded = localStorage.getItem('table_data_loaded');
+        var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
 
-    if (dataLoaded && dataLoaded === 'true') {
-        return; // אם הנתונים כבר נטענו, לא להוסיף נתונים נוספים
+        var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+
+        // Save the Blob using the FileSaver.js library
+        saveAs(blob, 'שמות.xlsx');
+        
+        // Refresh the page after a brief delay
+        setTimeout(function () {
+            window.location.reload();
+        }, 3000);
+        
+        // Clear the table content after export
+        table.innerHTML = '';
     }
 
-    var tableData = JSON.parse(localStorage.getItem('table_data'));
-    var tableBody = document.getElementById('names-table-body');
-
-    tableData.forEach(function (rowData) {
-        var newRow = tableBody.insertRow();
-        var nameCell = newRow.insertCell(0);
-        var signatureCell = newRow.insertCell(1);
-        var joinDatabaseCell = newRow.insertCell(2);
-
-        nameCell.textContent = rowData.fullName;
-        signatureCell.textContent = rowData.mySignature;
-        joinDatabaseCell.textContent = rowData.joinDatabaseValue;
+    window.addEventListener('beforeunload', function () {
+        exportDataToExcel();
+        
     });
 
-    localStorage.setItem('table_data_loaded', 'true');
-}
+                window.onbeforeunload = function () {
+                var fullName = document.getElementById('full-name').value;
+                var mySignature = document.getElementById('my_signature').value;
+                var joinDatabase = document.getElementById('join-database').checked;
+        
+                localStorage.setItem('full_name', fullName);
+                localStorage.setItem('my_signature', mySignature);
+                localStorage.setItem('join_database', joinDatabase);
+        
+                var tableData = [];
+                var tableRows = document.querySelectorAll('#names-table-body tr');
+                tableRows.forEach(function (row) {
+                    var nameCell = row.querySelector('td:first-child');
+                    var signatureCell = row.querySelector('td:last-child');
+                    tableData.push([nameCell.textContent, signatureCell.textContent]);
+                });
+        
+                localStorage.setItem('table_data', JSON.stringify(tableData));
+            };
+        
+            window.addEventListener('DOMContentLoaded', function () {
+                var fullName = localStorage.getItem('full_name');
+                var mySignature = localStorage.getItem('my_signature');
+                var joinDatabase = localStorage.getItem('join_database');
+        
+                if (fullName) {
+                    document.getElementById('full-name').value = fullName;
+                }
+        
+                if (mySignature) {
+                    document.getElementById('my_signature').value = mySignature;
+                }
+        
+                if (joinDatabase === 'true') {
+                    document.getElementById('join-database').checked = true;
+                }
+        
+                var tableData = JSON.parse(localStorage.getItem('table_data'));
+                if (tableData) {
+                    var tableBody = document.getElementById('names-table-body');
+                    tableData.forEach(function (rowData) {
+                        var newRow = tableBody.insertRow();
+                        var nameCell = newRow.insertCell(0);
+                        var signatureCell = newRow.insertCell(1);
+                        var joinDatabaseCell = newRow.insertCell(2);
+                        nameCell.textContent = rowData[0];
+                        signatureCell.textContent = rowData[1];
+                        joinDatabaseCell.textContent = rowData[2];
+                    });
+                }
+            });
+        
+            function s2ab(s) {
+                var buf = new ArrayBuffer(s.length);
+                var view = new Uint8Array(buf);
+                for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            }
+            exportButton.addEventListener('click', exportDataToExcel);
+            var exportButton = document.getElementById('export-button');
 
-
-    
-        // הוספת אירוע טעינת הדף
-        window.addEventListener('DOMContentLoaded', function () {
-            loadTableDataFromLocalStore();
+            window.location.reload();
+            window.addEventListener('beforeunload', function (event) {
+                
         });
-    
-        // הוספת אירוע לרענון הדף
-        window.onbeforeunload = function () {
-            saveDataToLocalStore();
-        };*/
-    </script>
+        </script>
     
 </body>
 </html>
