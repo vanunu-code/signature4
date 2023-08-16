@@ -160,7 +160,32 @@
     <script>
         // Animation for the save button
         const saveButton = document.getElementById('save-button');
+        // הוסף אירוע ללחיצה על כפתור השמירה
+saveButton.addEventListener('click', function () {
+    const dataUrl = signaturePad.toDataURL();
+    const fullName = document.getElementById('full-name').value;
     
+    // שמירת התמונה לתיקיית הקבצים במכשיר (התיקייה הבאה מסמלת את תיקיית המסמכים ב-iPad)
+    saveImageToDevice(dataUrl, fullName + '_signature.png');
+});
+
+// פונקציה לשמירת התמונה בתיקיית הקבצים במכשיר
+function saveImageToDevice(dataUrl, filename) {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    link.style.display = 'none';
+
+    // יצירת אירוע "לחיצה" וזימון אותו
+    const clickEvent = new MouseEvent('click', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+    });
+
+    link.dispatchEvent(clickEvent);
+}
+
         saveButton.addEventListener('click', () => {
             saveButton.style.animation = 'likeAnimation 1s';
             setTimeout(() => {
@@ -234,9 +259,7 @@
             joinDatabaseCell.textContent = joinDatabaseValue;
 
              joinDatabaseCheckbox.checked = false;
-    
-            saveDataUrlToImage(signaturePad.toDataURL(), fullName + '_Va.png');
-    
+        
             document.getElementById('full-name').value = "";
             document.getElementById('my_signature').value = "";
             signaturePad.clear();
