@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="he">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        <style>
+            @media (max-width: 768px) {
+                body {
+                    font-size: 18px;
+                }
+                .container {
+                    width: 90%;
+                    padding: 15px;
+                }
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, Helvetica, Geneva, Tahoma, sans-serif;
+                background-color: #83e5f9;
+                background-size: cover;
+            }
+            .signature-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 10px;
+                box-shadow: 0px 0px 20px rgba(16, 70, 232, 0.3);
+                margin: 20px;
+                padding: 20px;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            .signature-pad {
+                width: 100%;
+                max-width: 600px;
+                height: 200px;
+                border: 3px dashed #361be4;
+                border-radius: 10px;
+                margin: 8px auto;
+            }
+            .checkbox-container {
+                display: flex;
+                align-items: center;
+            }
+            .button-container {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            .button-container button {
+                flex: 1;
+                padding: 10px;
+                font-size: 16px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s, box-shadow 0.3s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #clear-button {
+                background-color: #ff4d4d;
+                color: white;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            #save-button {
+                background-color: #4caf50;
+                color: white;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            .button-container button:hover {
+                box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+                transform: translateY(-2px);
+            }
+            .form-input {
+                font-size: 14px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                margin-bottom: 10px;
+            }
+            .header h1, .header h3, .header h4 {
+                margin: 0;
+            }
+            .header i {
+                font-size: 28px;
+            }
+            #names-list {
+                margin: 30%;
+            }
+            #join-database {
+                margin: 11px;
+            }
+            table thead th {
+                padding: 10px;
+            }
+            table tbody td {
+                padding: 10px;
+            }
+        </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@5.15.4/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="signature-container">
+        <div class="header">
+            <h1>יום היערכות פתיחת שנה תשפד</h1>
+            <h4> חתימה אישית</h4>
+        </div>
+        <h3><i class="fas fa-user"></i> שם ומשפחה</h3>
+        <input type="text" class="form-input" id="full-name" placeholder="שם מלא...">
+        <h3><i class="fas fa-pen"></i> החותמת האישית שלי</h3>
+        <input type="text" class="form-input" id="my_signature" placeholder="מלא/י את חותמך האישי...">
+        <div class="checkbox-container">
+            <label for="join-database" style="text-align: right;">
+                <i class="fas fa-database" style="padding: 5px;"></i>
+            שיח סוד זכה במכרז 'נופשון הקלה' לאירוח תלמידים שלנו בשבתות כימי נופשון<br>?האם תרצה/י להיות במאגר אנשי הצוות של נופשון הקלה         </label>
+            <input type="checkbox" id="join-database" s>
+        </div>
+        <h3><i class="fas fa-signature"></i>חתימה</h3>
+        <canvas id="signature-pad" class="signature-pad" width="600" height="200"></canvas>
+        <div class="button-container">
+            <button id="clear-button"><i class="fas fa-eraser"></i> ניקוי חתימה</button>
+            <button id="save-button"><i class="fas fa-save"></i> שמירה</button>
+        </div>
+    </div>
+    <div id="names-list">
+        <h2 style="font-family:Arial, Helvetica, Verdana, Geneva, Tahoma, sans-serif; color: #000000;">שמות</h2>
+        <table>
+          <!--  <button id="export-button">ייצוא לגיליון אקסל</button>-->
+            <thead>
+                <tr>
+                    <th>שם ומשפחה</th>
+                    <th>חותמת אישית</th>
+                    <th>נופשון הקלה</th>
+                </tr>
+            </thead>
+            <tbody id="names-table-body">
+                <!-- רשימת שמות-->
+            </tbody>            
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        // Animation for the save button
+        const saveButton = document.getElementById('save-button');
+    
+        saveButton.addEventListener('click', () => {
+            saveButton.style.animation = 'likeAnimation 1s';
+            setTimeout(() => {
+                saveButton.style.animation = '';
+            }, 1000);
+        });
+    
+        // Function to animate the button and toggle display
+        function animateButton() {
+            var button = document.getElementById('save-button');
+            var animationContainer = document.getElementById('like-animation');
+    
+            if (!animationContainer.style.display || animationContainer.style.display === 'none') {
+                button.innerHTML = 'תגובה!';
+                animationContainer.style.display = 'block';
+            } else {
+                button.innerHTML = 'שמירה';
+                animationContainer.style.display = 'none';
+            }
+        }
+    
+        // Signature pad and form submission
+        var canvas = document.getElementById('signature-pad');
+        var namesTableBody = document.getElementById('names-table-body');
+        var clearButton = document.getElementById('clear-button');
+    
+        function saveDataUrlToImage(dataUrl, filename) {
+            var link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            link.click();
+        }
+    
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+    
+        window.onresize = resizeCanvas;
+        resizeCanvas();
+    
+        var signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgba(255, 255, 255, 0)'
+        });
+    
+        document.getElementById('save-button').addEventListener('click', function (event) {
+            event.preventDefault();
+    
+            if (signaturePad.isEmpty()) {
+                return alert("אנא הזן חתימה קודם.");
+            }
+    
+            var fullName = document.getElementById('full-name').value;
+            var mySignature = document.getElementById('my_signature').value;
+            var joinDatabaseCheckbox = document.getElementById('join-database');
+            var joinDatabaseValue = joinDatabaseCheckbox.checked ? 'כן' : 'לא';
+    
+            if (fullName.trim() === "" || mySignature.trim() === "") {
+                return alert("אנא הזן שם, משפחה וחותמת אישית.");
+            }
+    
+            var newRow = namesTableBody.insertRow(0);
+            var nameCell = newRow.insertCell();
+            var signatureCell = newRow.insertCell();
+            var joinDatabaseCell = newRow.insertCell();
+    
+            nameCell.textContent = fullName;
+            signatureCell.textContent = mySignature;
+            joinDatabaseCell.textContent = joinDatabaseValue;
+
+             joinDatabaseCheckbox.checked = false;
+    
+            saveDataUrlToImage(signaturePad.toDataURL(), fullName + '_Va.png');
+    
+            document.getElementById('full-name').value = "";
+            document.getElementById('my_signature').value = "";
+            signaturePad.clear();
+        });
+    
+        clearButton.addEventListener('click', function () {
+            signaturePad.clear();
+        });
+    
+// Export data to Excel
+// Export data to Excel function
+function exportDataToExcel() {
+    var table = document.getElementById('names-table-body');
+    var rows = Array.from(table.getElementsByTagName('tr'));
+    var data = [['שם ומשפחה', 'חותמת אישית', 'נופשון הקלה']];
+    
+    if (table.children.length === 0) {
+        return;
+    }
+    
+    rows.forEach(function (row) {
+        var nameCell = row.querySelector('td:nth-child(1)');
+        var signatureCell = row.querySelector('td:nth-child(2)');
+        var joinDatabaseCell = row.querySelector('td:nth-child(3)');
+        var joinDatabaseValue = joinDatabaseCell.textContent;
+        data.push([nameCell.textContent, signatureCell.textContent, joinDatabaseValue]);
+    });
+
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'רשימת שמות');
+
+    var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+    var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+
+    // Save the Blob using the FileSaver.js library
+    saveAs(blob, 'שמות.xlsx');
+    
+    // Refresh the page after a brief delay
+    setTimeout(function () {
+        window.location.reload();
+    }, 3000);
+    
+    // Clear the table content after export
+    table.innerHTML = '';
+}
+
+// Event listener for page unload or refresh
+window.addEventListener('beforeunload', function () {
+    // Trigger the export function
+    exportDataToExcel();
+    
+});
+
+    
+        // Load and save data to local storage
+        window.onbeforeunload = function () {
+            var fullName = document.getElementById('full-name').value;
+            var mySignature = document.getElementById('my_signature').value;
+            var joinDatabase = document.getElementById('join-database').checked;
+    
+            localStorage.setItem('full_name', fullName);
+            localStorage.setItem('my_signature', mySignature);
+            localStorage.setItem('join_database', joinDatabase);
+    
+            var tableData = [];
+            var tableRows = document.querySelectorAll('#names-table-body tr');
+            tableRows.forEach(function (row) {
+                var nameCell = row.querySelector('td:first-child');
+                var signatureCell = row.querySelector('td:last-child');
+                tableData.push([nameCell.textContent, signatureCell.textContent]);
+            });
+    
+            localStorage.setItem('table_data', JSON.stringify(tableData));
+        };
+    
+        window.addEventListener('DOMContentLoaded', function () {
+            var fullName = localStorage.getItem('full_name');
+            var mySignature = localStorage.getItem('my_signature');
+            var joinDatabase = localStorage.getItem('join_database');
+    
+            if (fullName) {
+                document.getElementById('full-name').value = fullName;
+            }
+    
+            if (mySignature) {
+                document.getElementById('my_signature').value = mySignature;
+            }
+    
+            if (joinDatabase === 'true') {
+                document.getElementById('join-database').checked = true;
+            }
+    
+            var tableData = JSON.parse(localStorage.getItem('table_data'));
+            if (tableData) {
+                var tableBody = document.getElementById('names-table-body');
+                tableData.forEach(function (rowData) {
+                    var newRow = tableBody.insertRow();
+                    var nameCell = newRow.insertCell(0);
+                    var signatureCell = newRow.insertCell(1);
+                    var joinDatabaseCell = newRow.insertCell(2);
+                    nameCell.textContent = rowData[0];
+                    signatureCell.textContent = rowData[1];
+                    joinDatabaseCell.textContent = rowData[2];
+                });
+            }
+        });
+    
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+// הוספת אירוע לטעינת הדף
+window.addEventListener('DOMContentLoaded', function () {
+    // כאן תוכל להשליב את הקוד ללחיצה על כפתור "ייצוא לאקסל"
+    var exportButton = document.getElementById('export-button');
+    if (exportButton) {
+        exportButton.click();
+    }
+});
+
+// הוספת אירוע beforeunload לחלון הדפדפן
+window.addEventListener('beforeunload', function (event) {
+    // הוספת פקודה לרענון הדף
+    window.location.reload();
+});
+/*// שמירת נתונים בלוקל סטורז
+function saveDataToLocalStore() {
+    var tableData = [];
+    var tableRows = document.querySelectorAll('#names-table-body tr');
+
+    tableRows.forEach(function (row) {
+        var nameCell = row.querySelector('td:first-child');
+        var signatureCell = row.querySelector('td:nth-child(2)');
+        var joinDatabaseCell = row.querySelector('td:nth-child(3)');
+
+        tableData.push({
+            fullName: nameCell.textContent,
+            mySignature: signatureCell.textContent,
+            joinDatabaseValue: joinDatabaseCell.textContent
+        });
+    });
+
+    localStorage.setItem('table_data', JSON.stringify(tableData));
+}
+
+// טעינת נתונים מלוקל סטורז
+function loadTableDataFromLocalStore() {
+    var dataLoaded = localStorage.getItem('table_data_loaded');
+
+    if (dataLoaded && dataLoaded === 'true') {
+        return; // אם הנתונים כבר נטענו, לא להוסיף נתונים נוספים
+    }
+
+    var tableData = JSON.parse(localStorage.getItem('table_data'));
+    var tableBody = document.getElementById('names-table-body');
+
+    tableData.forEach(function (rowData) {
+        var newRow = tableBody.insertRow();
+        var nameCell = newRow.insertCell(0);
+        var signatureCell = newRow.insertCell(1);
+        var joinDatabaseCell = newRow.insertCell(2);
+
+        nameCell.textContent = rowData.fullName;
+        signatureCell.textContent = rowData.mySignature;
+        joinDatabaseCell.textContent = rowData.joinDatabaseValue;
+    });
+
+    localStorage.setItem('table_data_loaded', 'true');
+}
+
+
+    
+        // הוספת אירוע טעינת הדף
+        window.addEventListener('DOMContentLoaded', function () {
+            loadTableDataFromLocalStore();
+        });
+    
+        // הוספת אירוע לרענון הדף
+        window.onbeforeunload = function () {
+            saveDataToLocalStore();
+        };*/
+    </script>
+    
+</body>
+</html>
